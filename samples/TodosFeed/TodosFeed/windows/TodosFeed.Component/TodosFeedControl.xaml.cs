@@ -1,44 +1,34 @@
 ﻿
 using Microsoft.ReactNative;
-using Windows.Services.Maps;
+using Microsoft.ReactNative.Managed;
 using Windows.UI.Xaml.Controls;
-
 
 namespace TodosFeed.Component
 {
-    public sealed partial class TodosFeedControl : UserControl
+  public sealed partial class TodosFeedControl : UserControl
+  {
+    static readonly string JSFileName = "index";
+    static readonly string JSComponentName = "TodosFeed";
+
+    public TodosFeedControl()
     {
-        const string JSFILENAME = "index";
-        const string JSCOMPONENTNAME = "TodosFeed";
-
-        public TodosFeedControl()
-        {
-            this.InitializeComponent();
-            LoadReact();
-        }
-
-        public void LoadReact()
-        {
-            ReactInstanceSettings settings = new ReactInstanceSettings();
-
-            settings.UseLiveReload = true;
-            settings.UseWebDebugger = true;
-
-            ReactInstance instance = new ReactInstance();
-            ReactApplication app = new ReactApplication();
-            app.JavaScriptMainModuleName = JSFILENAME;
-            
-            RootElement.Instance = instance;
-
-            string initialProps = "{ "
-                          + "\"one\":\"1\""
-                          + ", \"two\":\"2\""
-                          + "}";
-
-            RootElement.InitialProps = initialProps;
-
-            RootElement.JsComponentName = JSCOMPONENTNAME;
-            RootElement.StartRender();
-        }
+      InitializeComponent();
+      LoadReact();
     }
+
+    public void LoadReact()
+    {
+      ReactNativeHost host = new ReactNativeHost();
+
+      host.InstanceSettings.UseLiveReload = true;
+      host.InstanceSettings.UseWebDebugger = true;
+      host.InstanceSettings.EnableDeveloperMenu = true;
+      host.InstanceSettings.JavaScriptMainModuleName = JSFileName;
+
+      RootElement.ComponentName = JSComponentName;
+      JSValue initialProps = new JSValueObject { ["one"] = "1", ["two"] = "2" };
+      RootElement.InitialProps = (IJSValueWriter writer) => writer.WriteValue(initialProps);
+      RootElement.ReactNativeHost = host;
+    }
+  }
 }
