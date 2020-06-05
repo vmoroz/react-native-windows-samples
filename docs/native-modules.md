@@ -24,7 +24,7 @@ Native modules contain (or wrap) native code which can then be exposed to JS. To
    1. Add the package to your React Native application.
 1. Use your native module from your JavaScript code.
 
-React Native for Windows supports authoring native modules in both C# and C++. Examples of both are provided below. Please see the [C# vs. C++ for Native Modules](#c-vs-c-for-native-modules) note for more information about which to choose. 
+React Native for Windows supports authoring native modules in both C# and C++. Examples of both are provided below. Please see the [C# vs. C++ for Native Modules](#c-vs-c-for-native-modules) note for more information about which to choose.
 
 > NOTE: If you are unable to use the reflection-based annotation approach, you can define native modules directly using the ABI. This is outlined in the [Writing Native Modules without using Attributes](native-modules-advanced.md) document.
 
@@ -32,7 +32,7 @@ React Native for Windows supports authoring native modules in both C# and C++. E
 
 Follow the [Native Modules Setup Guide](native-modules-setup.md) to create the Visual Studio infrastructure to author your own stand-alone native module for React Native Windows.
 
-Once you have set up your development environment and project structure, you are ready to write code. 
+Once you have set up your development environment and project structure, you are ready to write code.
 
 Open the Visual Studio solution in the `windows` folder and add the new files directly to the app project.
 
@@ -40,14 +40,16 @@ Open the Visual Studio solution in the `windows` folder and add the new files di
 
 ### Attributes
 
-| Attribute               | Use                                                       |
-| ----------------------- | --------------------------------------------------------- |
-| `ReactModule`           | Specifies the class is a native module.                   |
-| `ReactMethod`           | Specifies an asynchronous method.                         |
-| `ReactSyncMethod`       | Specifies a synchronous method.                           |
-| `ReactConstant`         | Specifies a field or property that represents a constant. |
-| `ReactConstantProvider` | Specifies a method that provides a set of constants.      |
-| `ReactEvent`            | Specifies a field or property that represents an event.   |
+| Attribute               | Use                                                          |
+| ----------------------- | ------------------------------------------------------------ |
+| `ReactModule`           | Specifies that the class is a native module.                 |
+| `ReactInitializer`      | Specifies an initialization method that receives context.    |
+| `ReactMethod`           | Specifies an asynchronous method.                            |
+| `ReactSyncMethod`       | Specifies a synchronous method.                              |
+| `ReactConstant`         | Specifies a field or property that represents a constant.    |
+| `ReactConstantProvider` | Specifies a method that provides a set of constants.         |
+| `ReactEvent`            | Specifies a field or property that represents a JS event.    |
+| `ReactFunction`         | Specifies a field or property that represents a JS function. |
 
 ### 1. Authoring your Native Module
 
@@ -79,7 +81,7 @@ namespace NativeModuleSample
     }
 
     [ReactEvent]
-    public ReactEvent<double> AddEvent { get; set; }
+    public Action<double> AddEvent { get; set; }
   }
 }
 ```
@@ -90,7 +92,7 @@ The `[ReactModule]` attribute says that the class is a ReactNative native module
 
 You can overwrite the JavaScript module name like this: `[ReactModule("math")]`.
 
-You can specify a different event emitter like this: `[ReactModule(EventEmitter = "mathEmitter")]`.
+You can specify a different event emitter like this: `[ReactModule(EventEmitterName = "mathEmitter")]`.
 
 > NOTE: Using the default event emitter, `RCTDeviceEventEmitter`, all native event names must be **globally unique across all native modules** (even the ones built-in to RN). However, specifying your own event emitter means you'll need to create and register that too. This process is outlined in the [Native Modules and React Native Windows (Advanced Topics)](native-modules-advanced.md) document.
 
@@ -98,11 +100,13 @@ The `[ReactConstant]` attribute is how you can define constants. Here FancyMath 
 
 The `[ReactMethod]` attribute is how you define methods. In FancyMath we have one method, `add`, which takes two doubles and returns their sum. As before, you can optionally customize the name like this: `[ReactMethod("add")]`.
 
-The `[ReactEvent]` attribute is how you define events. In FancyMath we have one event, `AddEvent`, which uses the `ReactEvent<double>` delegate, where the double represents the type of the event data. Now whenever we invoke the `AddEvent` delegate in our native code (as we do above), an event named `"AddEvent"` will be raised in JavaScript. As before, you could have optionally customized the name in JS like this: `[ReactEvent("addEvent")]`.
+The `[ReactEvent]` attribute is how you define events. In FancyMath we have one event, `AddEvent`, which uses the `Action<double>` delegate, where the double represents the type of the event data. Now whenever we invoke the `AddEvent` delegate in our native code (as we do above), an event named `"AddEvent"` will be raised in JavaScript. As before, you could have optionally customized the name in JS like this: `[ReactEvent("addEvent")]`. We can also specify the event emitter per event:  `[ReactEvent(EventEmitterName = "mathEmitter")]`.
+
+The event and function properties and fields are initialized during the module initialization phase. In the end of the initialization React Native calls methods with the `[ReactInstance]` attributes. This method receives `ReactContext` that can be used to interact with the rest of the React Native framework.
 
 ### 2. Registering your Native Module
 
-> IMPORTANT NOTE: When you create a new project via the CLI, the generated `ReactApplication` class will automatically register all native modules defined within the app. **You will not need to manually register native modules that are defined within your app's scope, as they will be registered automatically.**
+> IMPORTANT NOTE: When you create a new project via the CLI, the generated `App` class inherited from `ReactApplication` will automatically register all native modules defined within the app. **You will not need to manually register native modules that are defined within your app's scope, as they will be registered automatically.**
 
 Now, we want to register our new `FancyMath` module with React Native so we can use it from JavaScript code. To do this, first we're going to create a `ReactPackageProvider` which implements [Microsoft.ReactNative.IReactPackageProvider](https://github.com/microsoft/react-native-windows/blob/master/vnext/Microsoft.ReactNative/IReactPackageProvider.idl).
 
