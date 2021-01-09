@@ -26,6 +26,9 @@
       "native-code-language-choice",
       "win10-vm"
     ],
+    "C++ API (Windows)": [
+      "cppapi-reactdispatcher"
+    ],
     "The Basics (MacOS)": [
       "rnm-getting-started",
       "rnm-dependencies"
