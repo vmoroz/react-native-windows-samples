@@ -27,7 +27,30 @@
       "win10-vm"
     ],
     "C++ API (Windows)": [
-      "cppapi-reactdispatcher"
+      "cppapi-crash",
+      "cppapi-jsvalue",
+      "cppapi-jsvaluereader",
+      "cppapi-jsvaluetreereader",
+      "cppapi-jsvaluetreewriter",
+      "cppapi-jsvaluewriter",
+      "cppapi-moduleregistration",
+      "cppapi-nativemodulecustomattributes",
+      "cppapi-reactcontext",
+      "cppapi-reactdispatcher",
+      "cppapi-reacterror",
+      "cppapi-reactnonabivalue",
+      "cppapi-reactnotificationargs",
+      "cppapi-reactnotificationargsbase",
+      "cppapi-reactnotificationid",
+      "cppapi-reactnotificationservice",
+      "cppapi-reactnotificationsubscription",
+      "cppapi-reactnotificationsubscriptionrevoker",
+      "cppapi-reactpromise",
+      "cppapi-reactpromisebase",
+      "cppapi-reactpropertybag",
+      "cppapi-reactpropertyid",
+      "cppapi-reactpropertyname",
+      "cppapi-reactpropertynamespace"
     ],
     "The Basics (MacOS)": [
       "rnm-getting-started",

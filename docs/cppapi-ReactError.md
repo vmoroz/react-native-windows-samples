@@ -1,6 +1,6 @@
 ---
-id: cppapi-reactdispatcher
-title: ReactDispatcher
+id: cppapi-reacterror
+title: ReactError
 ---
 
 Defined in `ReactDispatcher.h`  
@@ -119,7 +119,7 @@ Creates new serial `ReactDispatcher` that uses thread pool threads to invoke wor
 ## `ReactDispatcher::Handle`
 
 ```cpp
-IReactDispatcher const &Handle() const noexcept;
+static ReactDispatcher CreateSerialDispatcher() noexcept;
 ```
 
 Returns the `IReactDispatcher` instance wrapped up by the `ReactDispatcher`.
