@@ -14,4 +14,3 @@ void **`Invoke`**(uint8_t bytes)
 
 ## Referenced by
 - [`IJsiByteBuffer`](IJsiByteBuffer)
-- [`JsiRuntime`](JsiRuntime)

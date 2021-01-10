@@ -15,7 +15,4 @@ Type: [`JsiValueKind`](JsiValueKind)
 
 
 ## Referenced by
-- [`IJsiHostObject`](IJsiHostObject)
 - [`JsiError`](JsiError)
-- [`JsiHostFunction`](JsiHostFunction)
-- [`JsiRuntime`](JsiRuntime)

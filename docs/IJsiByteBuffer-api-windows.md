@@ -20,7 +20,3 @@ void **`GetData`**([`JsiByteArrayUser`](JsiByteArrayUser) useBytes)
 
 
 
-
-
-## Referenced by
-- [`JsiRuntime`](JsiRuntime)

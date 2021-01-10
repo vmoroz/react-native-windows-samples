@@ -13,4 +13,3 @@ Kind: `enum`
 
 ## Referenced by
 - [`JsiError`](JsiError)
-- [`JsiRuntime`](JsiRuntime)
