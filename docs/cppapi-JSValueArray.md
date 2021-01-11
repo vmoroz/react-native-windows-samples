@@ -36,6 +36,48 @@ It has a constructor to move-initialize from the `std::intializer_list<JSValue>`
 | **[`operator ==`](#operator-)** | checks equality using `JSValueArray::Equals` |
 | **[`operator !=`](#operator--1)** | checks inequality using `JSValueArray::Equals` |
 
+### Examples
+
+Construct `JSValueArray` from an initializer list:
+
+```cpp
+auto arr = JSValueArray{"X", 42, nullptr, true};
+```
+
+Use `JSValueArray` and `JSValueObject` in the initializer list:
+
+```cpp
+auto arr = JSValueArray{
+  "X",
+  42,
+  nullptr,
+  true, 
+  JSValueArray{1, "2", 3},
+  JSValueObject{{"Foo", 5}, {"Bar", 10}}
+};
+```
+
+Get size of the array. The `JSValueArray` in inherited from `std::vector` and we can use all `std::vector` methods.
+
+```cpp
+JSValueArray arr = ...;
+auto arrSize = arr.size();
+```
+
+Accessing array items by index. We use `auto&` to avoid copy. Since `JSValue` has not copy constructor, the accidental use of `auto` will cause a compilation error.
+
+```cpp
+JSValueArray arr = ...;
+auto& item = arr[2];
+```
+
+To get a copy of an item, you could use the `Copy` method. Note, that `Copy` method does a deep copy that can be expensive.
+
+```cpp
+JSValueArray arr = ...;
+auto item = arr[2].Copy(); // when you absolutely must to get an item copy.
+```
+
 ---
 
 ## `(constructor)`
@@ -71,6 +113,7 @@ JSValueArray(std::initializer_list<JSValueArrayItem> initObject) noexcept;
 ```
 
 Move-constructs `JSValueArray` from the initializer list.
+The `JSValueArrayItem` is an internal helper class that implicitly initializes its `JSValue` field with any value that can be passed to `JSValue` implicit constructor. The `JSValueArrayItem` must not be used directly. Instead, provide a value which let's the `JSValue` to be constructed from.
 
 ```cpp
   JSValueArray(std::vector<JSValue> &&other) noexcept;
