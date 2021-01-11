@@ -1,17 +1,16 @@
 ---
-id: cppapi-reactpropertyid
-title: ReactPropertyId
+id: cppapi-jsvalueobject
+title: JSValueObject
 ---
 
-Defined in `ReactDispatcher.h`  
+Defined in `JSValue.h`  
 Namespace: **`winrt::Microsoft::ReactNative`**  
 Namespace alias: **`React`**
 
 ## Definition
 
 ```cpp
-template <class T>
-struct ReactPropertyId : ReactPropertyName;
+struct JSValue;
 ```
 
 `ReactDispatcher` allows to post work items to a queue for asynchronous execution in a sequential order.
@@ -22,6 +21,67 @@ It wraps up the `IReactDispatcher` C++/WinRT generated interface.
 | | |
 |-|-|
 | **[`(constructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactDispatcher` |
+| **[`(destructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactDispatcher` |
+
+
+  Copy
+  MoveObject
+  MoveArray
+  Type
+  IsNull
+  TryGetObject
+  TryGetArray
+  TryGetString
+  TryGetBoolean
+  TryGetInt64
+  TryGetDouble
+  AsObject
+  AsArray
+  AsString
+  AsBoolean
+  AsInt8
+  AsInt16
+  AsInt32
+  AsInt64
+  AsUInt8
+  AsUInt16
+  AsUInt32
+  AsUInt64
+  AsSingle
+  AsDouble
+  AsJSString
+  AsJSBoolean
+  AsJSNumber
+  ToString
+  To
+  From
+  PropertyCount
+  TryGetObjectProperty
+  GetObjectProperty
+  ItemCount
+  TryGetArrayItem
+  GetArrayItem
+  Equals
+  JSEquals
+  ReadFrom
+  ReadObjectFrom
+  ReadArrayFrom
+  WriteTo
+
+  operator std::string
+  operator bool
+  operator int8_t
+  operator int16_t
+  operator int32_t
+  operator int64_t
+  operator uint8_t
+  operator uint16_t
+  operator uint32_t
+  operator uint64_t
+  operator float
+  operator double
+  operator[]
+
 | **[`CreateSerialDispatcher`](#reactdispatchercreateserialdispatcher)** | creates new serial `ReactDispatcher` based on a thread pool |
 | **[`Handle`](#reactdispatcherhandle)** | access the wrapped `IReactDispatcher` |
 | **[`HasThreadAccess`](#reactdispatcherhasthreadaccess)** | checks if the `ReactDispatcher` has access to the current thread |

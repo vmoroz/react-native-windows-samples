@@ -3,14 +3,14 @@ id: cppapi-reacterror
 title: ReactError
 ---
 
-Defined in `ReactDispatcher.h`  
+Defined in `ReactError.h`  
 Namespace: **`winrt::Microsoft::ReactNative`**  
 Namespace alias: **`React`**
 
 ## Definition
 
 ```cpp
-struct ReactDispatcher;
+struct ReactError;
 ```
 
 `ReactDispatcher` allows to post work items to a queue for asynchronous execution in a sequential order.
@@ -20,12 +20,9 @@ It wraps up the `IReactDispatcher` C++/WinRT generated interface.
 
 | | |
 |-|-|
-| **[`(constructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactDispatcher` |
-| **[`CreateSerialDispatcher`](#reactdispatchercreateserialdispatcher)** | creates new serial `ReactDispatcher` based on a thread pool |
-| **[`Handle`](#reactdispatcherhandle)** | access the wrapped `IReactDispatcher` |
-| **[`HasThreadAccess`](#reactdispatcherhasthreadaccess)** | checks if the `ReactDispatcher` has access to the current thread |
-| **[`Post`](#reactdispatcherpost)** | posts `ReactDispatcherCallback` for asynchronous execution |
-| **[`operator bool`](#reactdispatcheroperator-bool)** | checks if the wrapped `IReactDispatcher` is not null |
+| **[`Code`](#reactdispatchercreateserialdispatcher)** | creates new serial `ReactDispatcher` based on a thread pool |
+| **[`Message`](#reactdispatcherhandle)** | access the wrapped `IReactDispatcher` |
+| **[`UserInfo`](#reactdispatcherhasthreadaccess)** | checks if the `ReactDispatcher` has access to the current thread |
 
 ### Notes
 

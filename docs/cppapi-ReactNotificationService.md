@@ -3,43 +3,43 @@ id: cppapi-reactnotificationservice
 title: ReactNotificationService
 ---
 
-Defined in `ReactDispatcher.h`  
+Defined in `ReactNotificationService.h`  
 Namespace: **`winrt::Microsoft::ReactNative`**  
 Namespace alias: **`React`**
 
 ## Definition
 
 ```cpp
-struct ReactDispatcher;
+struct ReactNotificationService;
 ```
 
-`ReactDispatcher` allows to post work items to a queue for asynchronous execution in a sequential order.
-It wraps up the `IReactDispatcher` C++/WinRT generated interface.
+`ReactNotificationService` allows to post work items to a queue for asynchronous execution in a sequential order.
+It wraps up the `IReactNotificationService` C++/WinRT generated interface.
 
 ### Member functions
 
 | | |
 |-|-|
-| **[`(constructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactDispatcher` |
-| **[`CreateSerialDispatcher`](#reactdispatchercreateserialdispatcher)** | creates new serial `ReactDispatcher` based on a thread pool |
-| **[`Handle`](#reactdispatcherhandle)** | access the wrapped `IReactDispatcher` |
-| **[`HasThreadAccess`](#reactdispatcherhasthreadaccess)** | checks if the `ReactDispatcher` has access to the current thread |
-| **[`Post`](#reactdispatcherpost)** | posts `ReactDispatcherCallback` for asynchronous execution |
-| **[`operator bool`](#reactdispatcheroperator-bool)** | checks if the wrapped `IReactDispatcher` is not null |
+| **[`(constructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactNotificationService` |
+| **[`Subscribe`](#reactdispatchercreateserialdispatcher)** | creates new serial `ReactNotificationService` based on a thread pool |
+| **[`SendNotification`](#reactdispatcherhandle)** | access the wrapped `IReactNotificationService` |
+| **[`HasThreadAccess`](#reactdispatcherhasthreadaccess)** | checks if the `ReactNotificationService` has access to the current thread |
+| **[`Post`](#reactdispatcherpost)** | posts `ReactNotificationServiceCallback` for asynchronous execution |
+| **[`operator bool`](#reactdispatcheroperator-bool)** | checks if the wrapped `IReactNotificationService` is not null |
 
 ### Notes
 
-A `ReactDispatcher` may use different strategies to invoke callbacks.
-While all `ReactDispatcher`s invoke callbacks in a serial order, they may use different threads to do it.
+A `ReactNotificationService` may use different strategies to invoke callbacks.
+While all `ReactNotificationService`s invoke callbacks in a serial order, they may use different threads to do it.
 
-- UI thread-based `ReactDispatcher` uses UI thread for all callbacks. See `ReactContext::UIDispatcher`.
-- `ReactDispatcher` may use a dedicated thread. E.g. see `ReactContext::JSDispatcher`.
-- `ReactDispatcher` may use different threads from a thread pool. E.g. see `ReactDispatcher::CreateSerialDispatcher`.
-This way the `ReactDispatcher` does not hold any threads, but rather use them only when there is work to do.
+- UI thread-based `ReactNotificationService` uses UI thread for all callbacks. See `ReactContext::UIDispatcher`.
+- `ReactNotificationService` may use a dedicated thread. E.g. see `ReactContext::JSDispatcher`.
+- `ReactNotificationService` may use different threads from a thread pool. E.g. see `ReactNotificationService::CreateSerialDispatcher`.
+This way the `ReactNotificationService` does not hold any threads, but rather use them only when there is work to do.
 
 ### Examples
 
-In this example we post a lambda to be executed in the `ReactDispatcher`.
+In this example we post a lambda to be executed in the `ReactNotificationService`.
 
 ```cpp
 dispatcher.Post([]() noexcept {
@@ -48,10 +48,10 @@ dispatcher.Post([]() noexcept {
 
 ```
 
-In this example we use the `HasThreadAccess` to either run the code immediately or post it to the `ReactDispatcher`.
+In this example we use the `HasThreadAccess` to either run the code immediately or post it to the `ReactNotificationService`.
 
 ```cpp
-void InvokeElsePost(ReactDispatcher const& dispatcher, ReactDispatcherCallback const &callback) {
+void InvokeElsePost(ReactNotificationService const& dispatcher, ReactNotificationServiceCallback const &callback) {
   if (dispatcher.HasThreadAccess()) {
     callback();
   } else {
@@ -63,7 +63,7 @@ void InvokeElsePost(ReactDispatcher const& dispatcher, ReactDispatcherCallback c
 In this example we create a new serial dispatcher based on the thread pool and post some work to invoke there.
 
 ```cpp
-auto dispatcher = ReactDispatcher::CreateSerialDispatcher();
+auto dispatcher = ReactNotificationService::CreateSerialDispatcher();
 dispatcher.Post([]() noexcept {
   RunDispatchedCode1();
 }]);
@@ -74,41 +74,41 @@ dispatcher.Post([]() noexcept {
 
 ---
 
-## `ReactDispatcher::ReactDispatcher`
+## `ReactNotificationService::ReactNotificationService`
 
 ```cpp
-ReactDispatcher(std::nullptr_t = nullptr) noexcept;
+ReactNotificationService(std::nullptr_t = nullptr) noexcept;
 ```
 
-Constructs a `ReactDispatcher` with a null `IReactDispatcher` handle.
+Constructs a `ReactNotificationService` with a null `IReactNotificationService` handle.
 
 ```cpp
-explicit ReactDispatcher(IReactDispatcher const &handle) noexcept;
+explicit ReactNotificationService(IReactNotificationService const &handle) noexcept;
 ```
 
-Constructs a `ReactDispatcher` with the provided `IReactDispatcher` handle.
+Constructs a `ReactNotificationService` with the provided `IReactNotificationService` handle.
 
 ### Parameters
 
 | | |
 |-|-|
-| **`handle`** | the `IReactDispatcher` handle |
+| **`handle`** | the `IReactNotificationService` handle |
 
 ---
 
-## `ReactDispatcher::CreateSerialDispatcher`
+## `ReactNotificationService::CreateSerialDispatcher`
 
 ```cpp
-static ReactDispatcher CreateSerialDispatcher() noexcept;
+static ReactNotificationService CreateSerialDispatcher() noexcept;
 ```
 
-Creates new serial `ReactDispatcher` that uses thread pool threads to invoke work items in a sequential order.
+Creates new serial `ReactNotificationService` that uses thread pool threads to invoke work items in a sequential order.
 
 ### Parameters
 
 | | |
 |-|-|
-| **`callback`** | a `ReactDispatcherCallback` to be invoked asynchronously |
+| **`callback`** | a `ReactNotificationServiceCallback` to be invoked asynchronously |
 
 ### Return value
 
@@ -116,13 +116,13 @@ Creates new serial `ReactDispatcher` that uses thread pool threads to invoke wor
 
 ---
 
-## `ReactDispatcher::Handle`
+## `ReactNotificationService::Handle`
 
 ```cpp
-static ReactDispatcher CreateSerialDispatcher() noexcept;
+static ReactNotificationService CreateSerialDispatcher() noexcept;
 ```
 
-Returns the `IReactDispatcher` instance wrapped up by the `ReactDispatcher`.
+Returns the `IReactNotificationService` instance wrapped up by the `ReactNotificationService`.
 
 ### Parameters
 
@@ -130,17 +130,17 @@ Returns the `IReactDispatcher` instance wrapped up by the `ReactDispatcher`.
 
 ### Return value
 
-The `IReactDispatcher` wrapped by the `ReactDispatcher`. It may be empty.
+The `IReactNotificationService` wrapped by the `ReactNotificationService`. It may be empty.
 
 ---
 
-## `ReactDispatcher::HasThreadAccess`
+## `ReactNotificationService::HasThreadAccess`
 
 ```cpp
 bool HasThreadAccess() const noexcept;
 ```
 
-Checks if the `ReactDispatcher` has access to the current thread.
+Checks if the `ReactNotificationService` has access to the current thread.
 
 ### Parameters
 
@@ -148,26 +148,26 @@ Checks if the `ReactDispatcher` has access to the current thread.
 
 ### Return value
 
-**true** if the current thread is either associated with the `ReactDispatcher`,
-or the `ReactDispatcher` currently invokes one of its work items in the current thread.
+**true** if the current thread is either associated with the `ReactNotificationService`,
+or the `ReactNotificationService` currently invokes one of its work items in the current thread.
 Otherwise, it returns **false**.
 
 ---
 
-## `ReactDispatcher::Post`
+## `ReactNotificationService::Post`
 
 ```cpp
-void Post(ReactDispatcherCallback const &callback) const noexcept;
+void Post(ReactNotificationServiceCallback const &callback) const noexcept;
 ```
 
-Posts an `ReactDispatcherCallback` for an asynchronous invocation.
+Posts an `ReactNotificationServiceCallback` for an asynchronous invocation.
 It adds the `callback` to a queue. It will be invoked after all previous callbacks in the queue are invoked.
 
 ### Parameters
 
 | | |
 |-|-|
-| **`callback`** | a `ReactDispatcherCallback` to be invoked asynchronously |
+| **`callback`** | a `ReactNotificationServiceCallback` to be invoked asynchronously |
 
 ### Return value
 
@@ -175,13 +175,13 @@ It adds the `callback` to a queue. It will be invoked after all previous callbac
 
 ---
 
-## `ReactDispatcher::operator bool`
+## `ReactNotificationService::operator bool`
 
 ```cpp
 explicit operator bool() const noexcept;
 ```
 
-Checks if the wrapped `IReactDispatcher` is not empty.
+Checks if the wrapped `IReactNotificationService` is not empty.
 
 ### Parameters
 
@@ -189,5 +189,5 @@ Checks if the wrapped `IReactDispatcher` is not empty.
 
 ### Return value
 
-**true** if the wrapped `IReactDispatcher` is not empty.
+**true** if the wrapped `IReactNotificationService` is not empty.
 Otherwise it returns **false**.

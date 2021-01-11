@@ -3,43 +3,44 @@ id: cppapi-reactnotificationsubscription
 title: ReactNotificationSubscription
 ---
 
-Defined in `ReactDispatcher.h`  
+Defined in `ReactNotificationSubscription.h`  
 Namespace: **`winrt::Microsoft::ReactNative`**  
 Namespace alias: **`React`**
 
 ## Definition
 
 ```cpp
-struct ReactDispatcher;
+struct ReactNotificationSubscription;
 ```
 
-`ReactDispatcher` allows to post work items to a queue for asynchronous execution in a sequential order.
-It wraps up the `IReactDispatcher` C++/WinRT generated interface.
+`ReactNotificationSubscription` allows to post work items to a queue for asynchronous execution in a sequential order.
+It wraps up the `IReactNotificationSubscription` C++/WinRT generated interface.
 
 ### Member functions
 
 | | |
 |-|-|
-| **[`(constructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactDispatcher` |
-| **[`CreateSerialDispatcher`](#reactdispatchercreateserialdispatcher)** | creates new serial `ReactDispatcher` based on a thread pool |
-| **[`Handle`](#reactdispatcherhandle)** | access the wrapped `IReactDispatcher` |
-| **[`HasThreadAccess`](#reactdispatcherhasthreadaccess)** | checks if the `ReactDispatcher` has access to the current thread |
-| **[`Post`](#reactdispatcherpost)** | posts `ReactDispatcherCallback` for asynchronous execution |
-| **[`operator bool`](#reactdispatcheroperator-bool)** | checks if the wrapped `IReactDispatcher` is not null |
+| **[`(constructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactNotificationSubscription` |
+| **[`Dispatcher`](#reactdispatchercreateserialdispatcher)** | creates new serial `ReactNotificationSubscription` based on a thread pool |
+| **[`Handle`](#reactdispatcherhandle)** | access the wrapped `IReactNotificationSubscription` |
+| **[`IsSubscribed`](#reactdispatcherhasthreadaccess)** | checks if the `ReactNotificationSubscription` has access to the current thread |
+| **[`NotificationName`](#reactdispatcherpost)** | posts `ReactNotificationSubscriptionCallback` for asynchronous execution |
+| **[`Unsubscribe`](#reactdispatcherpost)** | posts `ReactNotificationSubscriptionCallback` for asynchronous execution |
+| **[`operator bool`](#reactdispatcheroperator-bool)** | checks if the wrapped `IReactNotificationSubscription` is not null |
 
 ### Notes
 
-A `ReactDispatcher` may use different strategies to invoke callbacks.
-While all `ReactDispatcher`s invoke callbacks in a serial order, they may use different threads to do it.
+A `ReactNotificationSubscription` may use different strategies to invoke callbacks.
+While all `ReactNotificationSubscription`s invoke callbacks in a serial order, they may use different threads to do it.
 
-- UI thread-based `ReactDispatcher` uses UI thread for all callbacks. See `ReactContext::UIDispatcher`.
-- `ReactDispatcher` may use a dedicated thread. E.g. see `ReactContext::JSDispatcher`.
-- `ReactDispatcher` may use different threads from a thread pool. E.g. see `ReactDispatcher::CreateSerialDispatcher`.
-This way the `ReactDispatcher` does not hold any threads, but rather use them only when there is work to do.
+- UI thread-based `ReactNotificationSubscription` uses UI thread for all callbacks. See `ReactContext::UIDispatcher`.
+- `ReactNotificationSubscription` may use a dedicated thread. E.g. see `ReactContext::JSDispatcher`.
+- `ReactNotificationSubscription` may use different threads from a thread pool. E.g. see `ReactNotificationSubscription::CreateSerialDispatcher`.
+This way the `ReactNotificationSubscription` does not hold any threads, but rather use them only when there is work to do.
 
 ### Examples
 
-In this example we post a lambda to be executed in the `ReactDispatcher`.
+In this example we post a lambda to be executed in the `ReactNotificationSubscription`.
 
 ```cpp
 dispatcher.Post([]() noexcept {
@@ -48,10 +49,10 @@ dispatcher.Post([]() noexcept {
 
 ```
 
-In this example we use the `HasThreadAccess` to either run the code immediately or post it to the `ReactDispatcher`.
+In this example we use the `HasThreadAccess` to either run the code immediately or post it to the `ReactNotificationSubscription`.
 
 ```cpp
-void InvokeElsePost(ReactDispatcher const& dispatcher, ReactDispatcherCallback const &callback) {
+void InvokeElsePost(ReactNotificationSubscription const& dispatcher, ReactNotificationSubscriptionCallback const &callback) {
   if (dispatcher.HasThreadAccess()) {
     callback();
   } else {
@@ -63,7 +64,7 @@ void InvokeElsePost(ReactDispatcher const& dispatcher, ReactDispatcherCallback c
 In this example we create a new serial dispatcher based on the thread pool and post some work to invoke there.
 
 ```cpp
-auto dispatcher = ReactDispatcher::CreateSerialDispatcher();
+auto dispatcher = ReactNotificationSubscription::CreateSerialDispatcher();
 dispatcher.Post([]() noexcept {
   RunDispatchedCode1();
 }]);
@@ -74,41 +75,41 @@ dispatcher.Post([]() noexcept {
 
 ---
 
-## `ReactDispatcher::ReactDispatcher`
+## `ReactNotificationSubscription::ReactNotificationSubscription`
 
 ```cpp
-ReactDispatcher(std::nullptr_t = nullptr) noexcept;
+ReactNotificationSubscription(std::nullptr_t = nullptr) noexcept;
 ```
 
-Constructs a `ReactDispatcher` with a null `IReactDispatcher` handle.
+Constructs a `ReactNotificationSubscription` with a null `IReactNotificationSubscription` handle.
 
 ```cpp
-explicit ReactDispatcher(IReactDispatcher const &handle) noexcept;
+explicit ReactNotificationSubscription(IReactNotificationSubscription const &handle) noexcept;
 ```
 
-Constructs a `ReactDispatcher` with the provided `IReactDispatcher` handle.
+Constructs a `ReactNotificationSubscription` with the provided `IReactNotificationSubscription` handle.
 
 ### Parameters
 
 | | |
 |-|-|
-| **`handle`** | the `IReactDispatcher` handle |
+| **`handle`** | the `IReactNotificationSubscription` handle |
 
 ---
 
-## `ReactDispatcher::CreateSerialDispatcher`
+## `ReactNotificationSubscription::CreateSerialDispatcher`
 
 ```cpp
-static ReactDispatcher CreateSerialDispatcher() noexcept;
+static ReactNotificationSubscription CreateSerialDispatcher() noexcept;
 ```
 
-Creates new serial `ReactDispatcher` that uses thread pool threads to invoke work items in a sequential order.
+Creates new serial `ReactNotificationSubscription` that uses thread pool threads to invoke work items in a sequential order.
 
 ### Parameters
 
 | | |
 |-|-|
-| **`callback`** | a `ReactDispatcherCallback` to be invoked asynchronously |
+| **`callback`** | a `ReactNotificationSubscriptionCallback` to be invoked asynchronously |
 
 ### Return value
 
@@ -116,13 +117,13 @@ Creates new serial `ReactDispatcher` that uses thread pool threads to invoke wor
 
 ---
 
-## `ReactDispatcher::Handle`
+## `ReactNotificationSubscription::Handle`
 
 ```cpp
-static ReactDispatcher CreateSerialDispatcher() noexcept;
+static ReactNotificationSubscription CreateSerialDispatcher() noexcept;
 ```
 
-Returns the `IReactDispatcher` instance wrapped up by the `ReactDispatcher`.
+Returns the `IReactNotificationSubscription` instance wrapped up by the `ReactNotificationSubscription`.
 
 ### Parameters
 
@@ -130,17 +131,17 @@ Returns the `IReactDispatcher` instance wrapped up by the `ReactDispatcher`.
 
 ### Return value
 
-The `IReactDispatcher` wrapped by the `ReactDispatcher`. It may be empty.
+The `IReactNotificationSubscription` wrapped by the `ReactNotificationSubscription`. It may be empty.
 
 ---
 
-## `ReactDispatcher::HasThreadAccess`
+## `ReactNotificationSubscription::HasThreadAccess`
 
 ```cpp
 bool HasThreadAccess() const noexcept;
 ```
 
-Checks if the `ReactDispatcher` has access to the current thread.
+Checks if the `ReactNotificationSubscription` has access to the current thread.
 
 ### Parameters
 
@@ -148,26 +149,26 @@ Checks if the `ReactDispatcher` has access to the current thread.
 
 ### Return value
 
-**true** if the current thread is either associated with the `ReactDispatcher`,
-or the `ReactDispatcher` currently invokes one of its work items in the current thread.
+**true** if the current thread is either associated with the `ReactNotificationSubscription`,
+or the `ReactNotificationSubscription` currently invokes one of its work items in the current thread.
 Otherwise, it returns **false**.
 
 ---
 
-## `ReactDispatcher::Post`
+## `ReactNotificationSubscription::Post`
 
 ```cpp
-void Post(ReactDispatcherCallback const &callback) const noexcept;
+void Post(ReactNotificationSubscriptionCallback const &callback) const noexcept;
 ```
 
-Posts an `ReactDispatcherCallback` for an asynchronous invocation.
+Posts an `ReactNotificationSubscriptionCallback` for an asynchronous invocation.
 It adds the `callback` to a queue. It will be invoked after all previous callbacks in the queue are invoked.
 
 ### Parameters
 
 | | |
 |-|-|
-| **`callback`** | a `ReactDispatcherCallback` to be invoked asynchronously |
+| **`callback`** | a `ReactNotificationSubscriptionCallback` to be invoked asynchronously |
 
 ### Return value
 
@@ -175,13 +176,13 @@ It adds the `callback` to a queue. It will be invoked after all previous callbac
 
 ---
 
-## `ReactDispatcher::operator bool`
+## `ReactNotificationSubscription::operator bool`
 
 ```cpp
 explicit operator bool() const noexcept;
 ```
 
-Checks if the wrapped `IReactDispatcher` is not empty.
+Checks if the wrapped `IReactNotificationSubscription` is not empty.
 
 ### Parameters
 
@@ -189,5 +190,5 @@ Checks if the wrapped `IReactDispatcher` is not empty.
 
 ### Return value
 
-**true** if the wrapped `IReactDispatcher` is not empty.
+**true** if the wrapped `IReactNotificationSubscription` is not empty.
 Otherwise it returns **false**.

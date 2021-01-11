@@ -3,43 +3,40 @@ id: cppapi-reactnotificationid
 title: ReactNotificationId
 ---
 
-Defined in `ReactDispatcher.h`  
+Defined in `ReactNotificationArgs.h`  
 Namespace: **`winrt::Microsoft::ReactNative`**  
 Namespace alias: **`React`**
 
 ## Definition
 
 ```cpp
-struct ReactDispatcher;
+template <class T>
+struct ReactNotificationArgs : ReactNotificationArgsBase;
 ```
 
-`ReactDispatcher` allows to post work items to a queue for asynchronous execution in a sequential order.
-It wraps up the `IReactDispatcher` C++/WinRT generated interface.
+`ReactNotificationArgs` allows to post work items to a queue for asynchronous execution in a sequential order.
+It wraps up the `IReactNotificationArgs` C++/WinRT generated interface.
 
 ### Member functions
 
 | | |
 |-|-|
-| **[`(constructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactDispatcher` |
-| **[`CreateSerialDispatcher`](#reactdispatchercreateserialdispatcher)** | creates new serial `ReactDispatcher` based on a thread pool |
-| **[`Handle`](#reactdispatcherhandle)** | access the wrapped `IReactDispatcher` |
-| **[`HasThreadAccess`](#reactdispatcherhasthreadaccess)** | checks if the `ReactDispatcher` has access to the current thread |
-| **[`Post`](#reactdispatcherpost)** | posts `ReactDispatcherCallback` for asynchronous execution |
-| **[`operator bool`](#reactdispatcheroperator-bool)** | checks if the wrapped `IReactDispatcher` is not null |
+| **[`(constructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactNotificationArgs` |
+| **[`Data`](#reactdispatchercreateserialdispatcher)** | creates new serial `ReactNotificationArgs` based on a thread pool |
 
 ### Notes
 
-A `ReactDispatcher` may use different strategies to invoke callbacks.
-While all `ReactDispatcher`s invoke callbacks in a serial order, they may use different threads to do it.
+A `ReactNotificationArgs` may use different strategies to invoke callbacks.
+While all `ReactNotificationArgs`s invoke callbacks in a serial order, they may use different threads to do it.
 
-- UI thread-based `ReactDispatcher` uses UI thread for all callbacks. See `ReactContext::UIDispatcher`.
-- `ReactDispatcher` may use a dedicated thread. E.g. see `ReactContext::JSDispatcher`.
-- `ReactDispatcher` may use different threads from a thread pool. E.g. see `ReactDispatcher::CreateSerialDispatcher`.
-This way the `ReactDispatcher` does not hold any threads, but rather use them only when there is work to do.
+- UI thread-based `ReactNotificationArgs` uses UI thread for all callbacks. See `ReactContext::UIDispatcher`.
+- `ReactNotificationArgs` may use a dedicated thread. E.g. see `ReactContext::JSDispatcher`.
+- `ReactNotificationArgs` may use different threads from a thread pool. E.g. see `ReactNotificationArgs::CreateSerialDispatcher`.
+This way the `ReactNotificationArgs` does not hold any threads, but rather use them only when there is work to do.
 
 ### Examples
 
-In this example we post a lambda to be executed in the `ReactDispatcher`.
+In this example we post a lambda to be executed in the `ReactNotificationArgs`.
 
 ```cpp
 dispatcher.Post([]() noexcept {
@@ -48,10 +45,10 @@ dispatcher.Post([]() noexcept {
 
 ```
 
-In this example we use the `HasThreadAccess` to either run the code immediately or post it to the `ReactDispatcher`.
+In this example we use the `HasThreadAccess` to either run the code immediately or post it to the `ReactNotificationArgs`.
 
 ```cpp
-void InvokeElsePost(ReactDispatcher const& dispatcher, ReactDispatcherCallback const &callback) {
+void InvokeElsePost(ReactNotificationArgs const& dispatcher, ReactNotificationArgsCallback const &callback) {
   if (dispatcher.HasThreadAccess()) {
     callback();
   } else {
@@ -63,7 +60,7 @@ void InvokeElsePost(ReactDispatcher const& dispatcher, ReactDispatcherCallback c
 In this example we create a new serial dispatcher based on the thread pool and post some work to invoke there.
 
 ```cpp
-auto dispatcher = ReactDispatcher::CreateSerialDispatcher();
+auto dispatcher = ReactNotificationArgs::CreateSerialDispatcher();
 dispatcher.Post([]() noexcept {
   RunDispatchedCode1();
 }]);
@@ -74,41 +71,41 @@ dispatcher.Post([]() noexcept {
 
 ---
 
-## `ReactDispatcher::ReactDispatcher`
+## `ReactNotificationArgs::ReactNotificationArgs`
 
 ```cpp
-ReactDispatcher(std::nullptr_t = nullptr) noexcept;
+ReactNotificationArgs(std::nullptr_t = nullptr) noexcept;
 ```
 
-Constructs a `ReactDispatcher` with a null `IReactDispatcher` handle.
+Constructs a `ReactNotificationArgs` with a null `IReactNotificationArgs` handle.
 
 ```cpp
-explicit ReactDispatcher(IReactDispatcher const &handle) noexcept;
+explicit ReactNotificationArgs(IReactNotificationArgs const &handle) noexcept;
 ```
 
-Constructs a `ReactDispatcher` with the provided `IReactDispatcher` handle.
+Constructs a `ReactNotificationArgs` with the provided `IReactNotificationArgs` handle.
 
 ### Parameters
 
 | | |
 |-|-|
-| **`handle`** | the `IReactDispatcher` handle |
+| **`handle`** | the `IReactNotificationArgs` handle |
 
 ---
 
-## `ReactDispatcher::CreateSerialDispatcher`
+## `ReactNotificationArgs::CreateSerialDispatcher`
 
 ```cpp
-static ReactDispatcher CreateSerialDispatcher() noexcept;
+static ReactNotificationArgs CreateSerialDispatcher() noexcept;
 ```
 
-Creates new serial `ReactDispatcher` that uses thread pool threads to invoke work items in a sequential order.
+Creates new serial `ReactNotificationArgs` that uses thread pool threads to invoke work items in a sequential order.
 
 ### Parameters
 
 | | |
 |-|-|
-| **`callback`** | a `ReactDispatcherCallback` to be invoked asynchronously |
+| **`callback`** | a `ReactNotificationArgsCallback` to be invoked asynchronously |
 
 ### Return value
 
@@ -116,13 +113,13 @@ Creates new serial `ReactDispatcher` that uses thread pool threads to invoke wor
 
 ---
 
-## `ReactDispatcher::Handle`
+## `ReactNotificationArgs::Handle`
 
 ```cpp
-static ReactDispatcher CreateSerialDispatcher() noexcept;
+static ReactNotificationArgs CreateSerialDispatcher() noexcept;
 ```
 
-Returns the `IReactDispatcher` instance wrapped up by the `ReactDispatcher`.
+Returns the `IReactNotificationArgs` instance wrapped up by the `ReactNotificationArgs`.
 
 ### Parameters
 
@@ -130,17 +127,17 @@ Returns the `IReactDispatcher` instance wrapped up by the `ReactDispatcher`.
 
 ### Return value
 
-The `IReactDispatcher` wrapped by the `ReactDispatcher`. It may be empty.
+The `IReactNotificationArgs` wrapped by the `ReactNotificationArgs`. It may be empty.
 
 ---
 
-## `ReactDispatcher::HasThreadAccess`
+## `ReactNotificationArgs::HasThreadAccess`
 
 ```cpp
 bool HasThreadAccess() const noexcept;
 ```
 
-Checks if the `ReactDispatcher` has access to the current thread.
+Checks if the `ReactNotificationArgs` has access to the current thread.
 
 ### Parameters
 
@@ -148,26 +145,26 @@ Checks if the `ReactDispatcher` has access to the current thread.
 
 ### Return value
 
-**true** if the current thread is either associated with the `ReactDispatcher`,
-or the `ReactDispatcher` currently invokes one of its work items in the current thread.
+**true** if the current thread is either associated with the `ReactNotificationArgs`,
+or the `ReactNotificationArgs` currently invokes one of its work items in the current thread.
 Otherwise, it returns **false**.
 
 ---
 
-## `ReactDispatcher::Post`
+## `ReactNotificationArgs::Post`
 
 ```cpp
-void Post(ReactDispatcherCallback const &callback) const noexcept;
+void Post(ReactNotificationArgsCallback const &callback) const noexcept;
 ```
 
-Posts an `ReactDispatcherCallback` for an asynchronous invocation.
+Posts an `ReactNotificationArgsCallback` for an asynchronous invocation.
 It adds the `callback` to a queue. It will be invoked after all previous callbacks in the queue are invoked.
 
 ### Parameters
 
 | | |
 |-|-|
-| **`callback`** | a `ReactDispatcherCallback` to be invoked asynchronously |
+| **`callback`** | a `ReactNotificationArgsCallback` to be invoked asynchronously |
 
 ### Return value
 
@@ -175,13 +172,13 @@ It adds the `callback` to a queue. It will be invoked after all previous callbac
 
 ---
 
-## `ReactDispatcher::operator bool`
+## `ReactNotificationArgs::operator bool`
 
 ```cpp
 explicit operator bool() const noexcept;
 ```
 
-Checks if the wrapped `IReactDispatcher` is not empty.
+Checks if the wrapped `IReactNotificationArgs` is not empty.
 
 ### Parameters
 
@@ -189,5 +186,5 @@ Checks if the wrapped `IReactDispatcher` is not empty.
 
 ### Return value
 
-**true** if the wrapped `IReactDispatcher` is not empty.
+**true** if the wrapped `IReactNotificationArgs` is not empty.
 Otherwise it returns **false**.
