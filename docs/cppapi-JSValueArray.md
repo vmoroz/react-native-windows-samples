@@ -13,9 +13,10 @@ Namespace alias: **`React`**
 struct JSValueArray : std::vector<JSValue>
 ```
 
-`JSValueArray` is based on
-[`std::vector<JSValue>`](https://en.cppreference.com/w/cpp/container/vector).
-It has a constructor to move-initialize from the `std::intializer_list<JSValue>` that allows us to write `JSValueArray{"X", 42, nullptr, true}` and then assign it to `JSValue`. It also has `ReadFrom` method to initialize from `IJSValueReader` and `WriteTo` to serialize to `IJSValueWriter`.
+The `JSValueArray` has two roles:
+
+- `JSValueArray` is used as [`JSValue`](cppapi-jsvalue) array builder.
+- read-only `JSValueArray` is used as [`JSValue`](cppapi-jsvalue) array value.
 
 ### Member functions
 
@@ -33,8 +34,28 @@ It has a constructor to move-initialize from the `std::intializer_list<JSValue>`
 
 | Name | Description |
 |------|-------------|
-| **[`operator ==`](#operator-)** | checks equality using `JSValueArray::Equals` |
-| **[`operator !=`](#operator--1)** | checks inequality using `JSValueArray::Equals` |
+| **[`operator ==`](#equality-operator-)** | checks equality using `JSValueArray::Equals` |
+| **[`operator !=`](#inequality-operator-)** | checks inequality using `JSValueArray::Equals` |
+
+### Notes
+
+The [`JSValue`](cppapi-jsvalue) is an immutable value.
+Since objects and arrays are complex values, we need special builder classes for them.
+The `JSValueArray` is a builder for arrays, while the [`JSValueObject`](cppapi-jsvalueobject) is a builder for objects.
+
+Like [`JSValue`](cppapi-jsvalue), the `JSValueArray` has no copy constructor or assignment operator. This is to avoid accidental expensive copies.
+Use the [`Copy`](#jsvaluearraycopy) method to do the explicit copy.
+
+`JSValueArray` is based on
+[`std::vector<JSValue>`](https://en.cppreference.com/w/cpp/container/vector).
+We can use any `std::vector` methods to work with the `JSValueArray`.
+In addition to the `std::vector` methods, the `JSValueArray` has the following helper methods:
+
+- Special constructor to move-initialize from the `std::intializer_list<JSValue>`. It initializes `JSValueArray` from any values that can be passed to `JSValue` implicit constructors. E.g. we can write `JSValueArray{"X", 42, nullptr, true}`
+- [`Equals`](#jsvaluearrayequals) method and standalone [equality](#equality-operator-) and [inequality](#inequality-operator-) operators to do strict deep comparison.
+- [`JSEquals`](#jsvaluearrayjsequals) method to do JavaScript-like deep comparison where values are converted to the same type before comparison.
+- [`ReadFrom`](#jsvaluearrayreadfrom) method to construct `JSValueArray` from [`IJSValueReader`](IJSValueReader).
+- [`WriteTo`](#jsvaluearraywriteto) method to serialize `JSValueArray` to [`IJSValueWriter`](IJSValueWriter).
 
 ### Examples
 
@@ -57,21 +78,34 @@ auto arr = JSValueArray{
 };
 ```
 
-Get size of the array. The `JSValueArray` in inherited from `std::vector` and we can use all `std::vector` methods.
+The `JSValueArray` in inherited from `std::vector` and we can use all `std::vector` methods.  
+Add `JSValueArray` items using [`emplace_back`](https://en.cppreference.com/w/cpp/container/vector/emplace_back) method:
+
+```cpp
+auto arr = JSValueArray();
+arr.emplace_back("X");
+arr.emplace_back(42);
+arr.emplace_back(nullptr);
+arr.emplace_back(true);
+arr.emplace_back(JSValueArray{1, "2", 3});
+arr.emplace_back(JSValueObject{{"Foo", 5}, {"Bar", 10}});
+```
+
+Get size of the array.
 
 ```cpp
 JSValueArray arr = ...;
 auto arrSize = arr.size();
 ```
 
-Accessing array items by index. We use `auto&` to avoid copy. Since `JSValue` has not copy constructor, the accidental use of `auto` will cause a compilation error.
+Accessing array items by index. We use `auto&` to avoid copy. Since `JSValue` has no copy constructor, the accidental use of `auto` will cause a compilation error.
 
 ```cpp
 JSValueArray arr = ...;
 auto& item = arr[2];
 ```
 
-To get a copy of an item, you could use the `Copy` method. Note, that `Copy` method does a deep copy that can be expensive.
+To get a copy of an item, we use the [`Copy`](#jsvaluearraycopy) method. Note, that [`Copy`](#jsvaluearraycopy) method does a deep copy that can be expensive.
 
 ```cpp
 JSValueArray arr = ...;
@@ -257,7 +291,7 @@ Delete copy assignment to avoid unexpected copies. Use the `Copy` method instead
 
 ---
 
-## `operator ==`
+## Equality `operator ==`
 
 ```cpp
 bool operator==(JSValueArray const &left, JSValueArray const &right) noexcept;
@@ -278,7 +312,7 @@ Otherwise, it returns **`false`**.
 
 ---
 
-## `operator !=`
+## Inequality `operator !=`
 
 ```cpp
 bool operator!=(JSValueArray const &left, JSValueArray const &right) noexcept;
