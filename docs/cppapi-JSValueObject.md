@@ -10,83 +10,35 @@ Namespace alias: **`React`**
 ## Definition
 
 ```cpp
-struct JSValue;
+struct JSValueObject : std::map<std::string, JSValue, std::less<>>
 ```
 
-`ReactDispatcher` allows to post work items to a queue for asynchronous execution in a sequential order.
-It wraps up the `IReactDispatcher` C++/WinRT generated interface.
+`JSValueObject` is based on
+[`std::map`](https://en.cppreference.com/w/cpp/container/map)
+and has a custom constructor with `std::intializer_list`.
+It is possible to write: `JSValueObject{{"X", 4}, {"Y", 5}}` and assign it to `JSValue`.
+It uses the `std::less<>` comparison algorithm that allows an efficient
+key lookup using `std::string_view` that does not allocate memory for the `std::string` key.
 
 ### Member functions
 
-| | |
-|-|-|
-| **[`(constructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactDispatcher` |
-| **[`(destructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactDispatcher` |
+| Name | Description |
+|------|-------------|
+| **[`(constructor)`](#constructor)** | constructs the `ReactDispatcher` |
+| **[`Copy`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
+| **[`Equals`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
+| **[`JSEquals`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
+| **[`ReadFrom`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
+| **[`WriteTo`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
+| **[`operator=`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
+| **[`operator[]`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
 
+### Standalone functions
 
-  Copy
-  MoveObject
-  MoveArray
-  Type
-  IsNull
-  TryGetObject
-  TryGetArray
-  TryGetString
-  TryGetBoolean
-  TryGetInt64
-  TryGetDouble
-  AsObject
-  AsArray
-  AsString
-  AsBoolean
-  AsInt8
-  AsInt16
-  AsInt32
-  AsInt64
-  AsUInt8
-  AsUInt16
-  AsUInt32
-  AsUInt64
-  AsSingle
-  AsDouble
-  AsJSString
-  AsJSBoolean
-  AsJSNumber
-  ToString
-  To
-  From
-  PropertyCount
-  TryGetObjectProperty
-  GetObjectProperty
-  ItemCount
-  TryGetArrayItem
-  GetArrayItem
-  Equals
-  JSEquals
-  ReadFrom
-  ReadObjectFrom
-  ReadArrayFrom
-  WriteTo
-
-  operator std::string
-  operator bool
-  operator int8_t
-  operator int16_t
-  operator int32_t
-  operator int64_t
-  operator uint8_t
-  operator uint16_t
-  operator uint32_t
-  operator uint64_t
-  operator float
-  operator double
-  operator[]
-
-| **[`CreateSerialDispatcher`](#reactdispatchercreateserialdispatcher)** | creates new serial `ReactDispatcher` based on a thread pool |
-| **[`Handle`](#reactdispatcherhandle)** | access the wrapped `IReactDispatcher` |
-| **[`HasThreadAccess`](#reactdispatcherhasthreadaccess)** | checks if the `ReactDispatcher` has access to the current thread |
-| **[`Post`](#reactdispatcherpost)** | posts `ReactDispatcherCallback` for asynchronous execution |
-| **[`operator bool`](#reactdispatcheroperator-bool)** | checks if the wrapped `IReactDispatcher` is not null |
+| Name | Description |
+|------|-------------|
+| **[`operator ==`](#constructor)** | constructs the `ReactDispatcher` |
+| **[`operator !=`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
 
 ### Notes
 
@@ -135,19 +87,57 @@ dispatcher.Post([]() noexcept {
 
 ---
 
-## `ReactDispatcher::ReactDispatcher`
+## `(constructor)`
 
 ```cpp
-ReactDispatcher(std::nullptr_t = nullptr) noexcept;
+JSValueArray() = default;
 ```
 
-Constructs a `ReactDispatcher` with a null `IReactDispatcher` handle.
+Constructs empty `JSValueArray`.
 
 ```cpp
-explicit ReactDispatcher(IReactDispatcher const &handle) noexcept;
+explicit JSValueArray(size_type size) noexcept;
 ```
 
-Constructs a `ReactDispatcher` with the provided `IReactDispatcher` handle.
+Constructs `JSValueArray` with `size` count of `JSValue::Null` elements.
+
+```cpp
+JSValueArray(size_type size, JSValue const &defaultValue) noexcept;
+```
+
+Constructs `JSValueArray` with `size` count elements.
+Each element is a copy of `defaultValue`.
+
+```cpp
+template <class TMoveInputIterator, std::enable_if_t<!std::is_integral_v<TMoveInputIterator>, int> = 1>
+JSValueArray(TMoveInputIterator first, TMoveInputIterator last) noexcept;
+```
+
+Construct `JSValueArray` from the move iterator.
+
+```cpp
+JSValueArray(std::initializer_list<JSValueArrayItem> initObject) noexcept;
+```
+
+Move-construct `JSValueArray` from the initializer list.
+
+```cpp
+JSValueArray(std::vector<JSValue> &&other) noexcept;
+```
+
+Move-construct `JSValueArray` from the `std::vector<JSValue>`.
+
+```cpp
+JSValueArray(JSValueArray const &) = delete;
+```
+
+Delete copy constructor to avoid unexpected copies. Use the Copy method instead.
+
+```cpp
+JSValueArray(JSValueArray &&) = default;
+```
+
+Default move constructor.
 
 ### Parameters
 

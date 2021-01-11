@@ -10,180 +10,97 @@ Namespace alias: **`React`**
 ## Definition
 
 ```cpp
-struct JSValue;
+struct JSValueArray : std::vector<JSValue>
 ```
 
-`ReactDispatcher` allows to post work items to a queue for asynchronous execution in a sequential order.
-It wraps up the `IReactDispatcher` C++/WinRT generated interface.
+`JSValueArray` is based on
+[`std::vector<JSValue>`](https://en.cppreference.com/w/cpp/container/vector).
+It has a constructor to move-initialize from the `std::intializer_list<JSValue>` that allows us to write `JSValueArray{"X", 42, nullptr, true}` and then assign it to `JSValue`. It also has `ReadFrom` method to initialize from `IJSValueReader` and `WriteTo` to serialize to `IJSValueWriter`.
 
 ### Member functions
 
-| | |
-|-|-|
-| **[`(constructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactDispatcher` |
-| **[`(destructor)`](#reactdispatcherreactdispatcher)** | constructs the `ReactDispatcher` |
+| Name | Description |
+|------|-------------|
+| **[`(constructor)`](#constructor)** | constructs the `JSValueArray` |
+| **[`Copy`](#jsvaluearraycopy)** | does a deep copy of the `JSValueArray` |
+| **[`Equals`](#jsvaluearrayequals)** | strictly compares `JSValueArray` with another one |
+| **[`JSEquals`](#jsvaluearrayjsequals)** | compares `JSValueArray` with another one after value type conversion |
+| **[`ReadFrom`](#jsvaluearrayreadfrom)** | creates new `JSValueArray` from `IJSValueReader` |
+| **[`WriteTo`](#jsvaluearraywriteto)** | writes the `JSValueArray` to `IJSValueWriter` |
+| **[`operator =`](#jsvaluearrayoperator-)** | `JSValueArray` assignment operator |
 
+### Non-member functions
 
-  Copy
-  MoveObject
-  MoveArray
-  Type
-  IsNull
-  TryGetObject
-  TryGetArray
-  TryGetString
-  TryGetBoolean
-  TryGetInt64
-  TryGetDouble
-  AsObject
-  AsArray
-  AsString
-  AsBoolean
-  AsInt8
-  AsInt16
-  AsInt32
-  AsInt64
-  AsUInt8
-  AsUInt16
-  AsUInt32
-  AsUInt64
-  AsSingle
-  AsDouble
-  AsJSString
-  AsJSBoolean
-  AsJSNumber
-  ToString
-  To
-  From
-  PropertyCount
-  TryGetObjectProperty
-  GetObjectProperty
-  ItemCount
-  TryGetArrayItem
-  GetArrayItem
-  Equals
-  JSEquals
-  ReadFrom
-  ReadObjectFrom
-  ReadArrayFrom
-  WriteTo
-
-  operator std::string
-  operator bool
-  operator int8_t
-  operator int16_t
-  operator int32_t
-  operator int64_t
-  operator uint8_t
-  operator uint16_t
-  operator uint32_t
-  operator uint64_t
-  operator float
-  operator double
-  operator[]
-
-| **[`CreateSerialDispatcher`](#reactdispatchercreateserialdispatcher)** | creates new serial `ReactDispatcher` based on a thread pool |
-| **[`Handle`](#reactdispatcherhandle)** | access the wrapped `IReactDispatcher` |
-| **[`HasThreadAccess`](#reactdispatcherhasthreadaccess)** | checks if the `ReactDispatcher` has access to the current thread |
-| **[`Post`](#reactdispatcherpost)** | posts `ReactDispatcherCallback` for asynchronous execution |
-| **[`operator bool`](#reactdispatcheroperator-bool)** | checks if the wrapped `IReactDispatcher` is not null |
-
-### Notes
-
-A `ReactDispatcher` may use different strategies to invoke callbacks.
-While all `ReactDispatcher`s invoke callbacks in a serial order, they may use different threads to do it.
-
-- UI thread-based `ReactDispatcher` uses UI thread for all callbacks. See `ReactContext::UIDispatcher`.
-- `ReactDispatcher` may use a dedicated thread. E.g. see `ReactContext::JSDispatcher`.
-- `ReactDispatcher` may use different threads from a thread pool. E.g. see `ReactDispatcher::CreateSerialDispatcher`.
-This way the `ReactDispatcher` does not hold any threads, but rather use them only when there is work to do.
-
-### Examples
-
-In this example we post a lambda to be executed in the `ReactDispatcher`.
-
-```cpp
-dispatcher.Post([]() noexcept {
-  RunDispatchedCode();
-}]);
-
-```
-
-In this example we use the `HasThreadAccess` to either run the code immediately or post it to the `ReactDispatcher`.
-
-```cpp
-void InvokeElsePost(ReactDispatcher const& dispatcher, ReactDispatcherCallback const &callback) {
-  if (dispatcher.HasThreadAccess()) {
-    callback();
-  } else {
-    dispatcher.Post(callback);
-  }
-}
-```
-
-In this example we create a new serial dispatcher based on the thread pool and post some work to invoke there.
-
-```cpp
-auto dispatcher = ReactDispatcher::CreateSerialDispatcher();
-dispatcher.Post([]() noexcept {
-  RunDispatchedCode1();
-}]);
-dispatcher.Post([]() noexcept {
-  RunDispatchedCode2();
-}]);
-```
+| Name | Description |
+|------|-------------|
+| **[`operator ==`](#operator-)** | checks equality using `JSValueArray::Equals` |
+| **[`operator !=`](#operator--1)** | checks inequality using `JSValueArray::Equals` |
 
 ---
 
-## `ReactDispatcher::ReactDispatcher`
+## `(constructor)`
 
 ```cpp
-ReactDispatcher(std::nullptr_t = nullptr) noexcept;
+JSValueArray() = default;
 ```
 
-Constructs a `ReactDispatcher` with a null `IReactDispatcher` handle.
+Default constructor. Constructs an empty `JSValueArray`.
 
 ```cpp
-explicit ReactDispatcher(IReactDispatcher const &handle) noexcept;
+explicit JSValueArray(size_type size) noexcept;
 ```
 
-Constructs a `ReactDispatcher` with the provided `IReactDispatcher` handle.
+Constructs `JSValueArray` with `size` count of `JSValue::Null` elements.
 
-### Parameters
+```cpp
+JSValueArray(size_type size, JSValue const &defaultValue) noexcept;
+```
 
-| | |
-|-|-|
-| **`handle`** | the `IReactDispatcher` handle |
+Constructs `JSValueArray` with `size` count elements.
+Each element is a copy of `defaultValue`.
+
+```cpp
+template <class TMoveInputIterator, std::enable_if_t<!std::is_integral_v<TMoveInputIterator>, int> = 1>
+JSValueArray(TMoveInputIterator first, TMoveInputIterator last) noexcept;
+```
+
+Constructs `JSValueArray` from the move iterator.
+
+```cpp
+JSValueArray(std::initializer_list<JSValueArrayItem> initObject) noexcept;
+```
+
+Move-constructs `JSValueArray` from the initializer list.
+
+```cpp
+  JSValueArray(std::vector<JSValue> &&other) noexcept;
+```
+
+Move-constructs `JSValueArray` from the `JSValue` vector.
+
+```cpp
+JSValueArray(JSValueArray const &) = delete;
+```
+
+Deletes copy constructor to avoid unexpected copies. Use the `Copy` method instead.
+
+```cpp
+JSValueArray(JSValueArray &&) = default;
+```
+
+Default move constructor.
 
 ---
 
-## `ReactDispatcher::CreateSerialDispatcher`
+## `JSValueArray::Copy`
 
 ```cpp
-static ReactDispatcher CreateSerialDispatcher() noexcept;
+JSValueArray Copy() const noexcept;
 ```
 
-Creates new serial `ReactDispatcher` that uses thread pool threads to invoke work items in a sequential order.
-
-### Parameters
-
-| | |
-|-|-|
-| **`callback`** | a `ReactDispatcherCallback` to be invoked asynchronously |
-
-### Return value
-
-(none)
-
----
-
-## `ReactDispatcher::Handle`
-
-```cpp
-static ReactDispatcher CreateSerialDispatcher() noexcept;
-```
-
-Returns the `IReactDispatcher` instance wrapped up by the `ReactDispatcher`.
+Does a deep copy of the `JSValueArray`.
+Doing a deep copy could be an expensive operation.
+For that reason the `JSValueArray` has no copy constructor to avoid accidental copies.
 
 ### Parameters
 
@@ -191,44 +108,89 @@ Returns the `IReactDispatcher` instance wrapped up by the `ReactDispatcher`.
 
 ### Return value
 
-The `IReactDispatcher` wrapped by the `ReactDispatcher`. It may be empty.
+New `JSValueArray` with a deep copy of all items in the current `JSValueArray`.
 
 ---
 
-## `ReactDispatcher::HasThreadAccess`
+## `JSValueArray::Equals`
 
 ```cpp
-bool HasThreadAccess() const noexcept;
+bool Equals(JSValueArray const &other) const noexcept;
 ```
 
-Checks if the `ReactDispatcher` has access to the current thread.
+Checks strict equality with the `other` `JSValueArray`.
 
 ### Parameters
 
-(none)
+| Name | Description |
+|------|-------------|
+| **`other`** | a reference to another `JSValueArray` to compare with |
 
 ### Return value
 
-**true** if the current thread is either associated with the `ReactDispatcher`,
-or the `ReactDispatcher` currently invokes one of its work items in the current thread.
-Otherwise, it returns **false**.
+Returns **`true`** if this `JSValueArray` is strictly equal to the `other` `JSValueArray`.
+Both arrays must have the same size. Items must have the same type and value.
+Otherwise, it returns **`false`**.
 
 ---
 
-## `ReactDispatcher::Post`
+## `JSValueArray::JSEquals`
 
 ```cpp
-void Post(ReactDispatcherCallback const &callback) const noexcept;
+bool JSEquals(JSValueArray const &other) const noexcept;
 ```
 
-Posts an `ReactDispatcherCallback` for an asynchronous invocation.
-It adds the `callback` to a queue. It will be invoked after all previous callbacks in the queue are invoked.
+Checks JavaScript-like equality with the `other` `JSValueArray`.
+It compares the size of `JSValueArray` and if it is the same, then it compares items using [`JSValue::JSEquals`](cppapi-jsvalue#jsvaluejsequals) method. The [`JSValue::JSEquals`](cppapi-jsvalue#jsvaluejsequals) compares items after their values is converted to the same type.
 
 ### Parameters
 
-| | |
-|-|-|
-| **`callback`** | a `ReactDispatcherCallback` to be invoked asynchronously |
+| Name | Description |
+|------|-------------|
+| **`other`** | a reference to another `JSValueArray` |
+
+### Return value
+
+Returns **`true`** if this `JSValueArray` has the same size as the `other` `JSValueArray`,
+and [`JSValue::JSEquals`](cppapi-jsvalue#jsvaluejsequals) returns **`true`** for each item.
+Otherwise, it returns **`false`**.
+
+---
+
+## `JSValueArray::ReadFrom`
+
+```cpp
+static JSValueArray ReadFrom(IJSValueReader const &reader) noexcept;
+```
+
+Creates new `JSValueArray` from the `IJSValueReader`.
+
+### Parameters
+
+| Name | Description |
+|------|-------------|
+| **`reader`** | a `IJSValueReader` to read values from |
+
+### Return value
+
+Returns new `JSValueArray` initialized from the `IJSValueReader`.
+If the provided `IJSValueReader` is not in the array reading state, then it returns an empty `JSValueArray` and state of `IJSValueReader` is not changed.
+
+---
+
+## `JSValueArray::WriteTo`
+
+```cpp
+void WriteTo(IJSValueWriter const &writer) const noexcept;
+```
+
+Writes this `JSValueArray` to the `IJSValueWriter`.
+
+### Parameters
+
+| Name | Description |
+|------|-------------|
+| **`writer`** | a `IJSValueWriter` to write values to |
 
 ### Return value
 
@@ -236,19 +198,56 @@ It adds the `callback` to a queue. It will be invoked after all previous callbac
 
 ---
 
-## `ReactDispatcher::operator bool`
+## `JSValueArray::operator =`
 
 ```cpp
-explicit operator bool() const noexcept;
+JSValueArray &operator=(JSValueArray &&) = default;
 ```
 
-Checks if the wrapped `IReactDispatcher` is not empty.
+Default move assignment.
+
+```cpp
+JSValueArray &operator=(JSValueArray const &) = delete;
+```
+
+Delete copy assignment to avoid unexpected copies. Use the `Copy` method instead.
+
+---
+
+## `operator ==`
+
+```cpp
+bool operator==(JSValueArray const &left, JSValueArray const &right) noexcept;
+```
 
 ### Parameters
 
-(none)
+| Name | Description |
+|------|-------------|
+| **`left`** | `JSValueArray` to compare |
+| **`right`** | `JSValueArray` to compare |
 
 ### Return value
 
-**true** if the wrapped `IReactDispatcher` is not empty.
-Otherwise it returns **false**.
+It returns result of the `left.Equals(right)` operation.
+It returns **`true`** if both arrays have the same size and `JSValue::Equals` returns **`true`** for each pair of items.
+Otherwise, it returns **`false`**.
+
+---
+
+## `operator !=`
+
+```cpp
+bool operator!=(JSValueArray const &left, JSValueArray const &right) noexcept;
+```
+
+### Parameters
+
+| Name | Description |
+|------|-------------|
+| **`left`** | `JSValueArray` to compare |
+| **`right`** | `JSValueArray` to compare |
+
+### Return value
+
+It returns result of the `!(left == right)` operation.
