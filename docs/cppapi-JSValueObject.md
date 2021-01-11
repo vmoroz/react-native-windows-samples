@@ -13,76 +13,106 @@ Namespace alias: **`React`**
 struct JSValueObject : std::map<std::string, JSValue, std::less<>>
 ```
 
-`JSValueObject` is based on
-[`std::map`](https://en.cppreference.com/w/cpp/container/map)
-and has a custom constructor with `std::intializer_list`.
-It is possible to write: `JSValueObject{{"X", 4}, {"Y", 5}}` and assign it to `JSValue`.
-It uses the `std::less<>` comparison algorithm that allows an efficient
-key lookup using `std::string_view` that does not allocate memory for the `std::string` key.
+The `JSValueObject` has two roles:
+
+- `JSValueObject` is used as [`JSValue`](cppapi-jsvalue) object builder.
+- read-only `JSValueObject` is used as [`JSValue`](cppapi-jsvalue) object value.
 
 ### Member functions
 
 | Name | Description |
 |------|-------------|
-| **[`(constructor)`](#constructor)** | constructs the `ReactDispatcher` |
-| **[`Copy`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
-| **[`Equals`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
-| **[`JSEquals`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
-| **[`ReadFrom`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
-| **[`WriteTo`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
-| **[`operator=`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
-| **[`operator[]`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
+| **[`(constructor)`](#constructor)** | constructs the `JSValueObject` |
+| **[`Copy`](#jsvalueobjectcopy)** | does a deep copy of the `JSValueObject` |
+| **[`Equals`](#jsvalueobjectequals)** | strictly compares `JSValueObject` with another one |
+| **[`JSEquals`](#jsvalueobjectjsequals)** | compares `JSValueObject` with another one after value conversion |
+| **[`ReadFrom`](#jsvalueobjectreadfrom)** | creates new `JSValueObject` from `IJSValueReader` |
+| **[`WriteTo`](#jsvalueobjectwriteto)** | writes the `JSValueObject` to `IJSValueWriter` |
+| **[`operator =`](#jsvalueobjectoperator-)** | `JSValueObject` assignment operator |
+| **[`operator []`](#jsvalueobjectoperator--1)** | access `JSValueObject` property |
 
-### Standalone functions
+### Non-member functions
 
 | Name | Description |
 |------|-------------|
-| **[`operator ==`](#constructor)** | constructs the `ReactDispatcher` |
-| **[`operator !=`](#jsvalueobjectcopy)** | constructs the `ReactDispatcher` |
+| **[`operator ==`](#equality-operator-)** | checks equality using `JSValueObject::Equals` |
+| **[`operator !=`](#inequality-operator-)** | checks inequality using `JSValueObject::Equals` |
 
 ### Notes
 
-A `ReactDispatcher` may use different strategies to invoke callbacks.
-While all `ReactDispatcher`s invoke callbacks in a serial order, they may use different threads to do it.
+The [`JSValue`](cppapi-jsvalue) is an immutable value.
+Since objects and arrays are complex values, we need special builder classes for them.
+The `JSValueObject` is a builder for objects, while the [`JSValueArray`](cppapi-jsvaluearray) is a builder for array.
 
-- UI thread-based `ReactDispatcher` uses UI thread for all callbacks. See `ReactContext::UIDispatcher`.
-- `ReactDispatcher` may use a dedicated thread. E.g. see `ReactContext::JSDispatcher`.
-- `ReactDispatcher` may use different threads from a thread pool. E.g. see `ReactDispatcher::CreateSerialDispatcher`.
-This way the `ReactDispatcher` does not hold any threads, but rather use them only when there is work to do.
+Like [`JSValue`](cppapi-jsvalue), the `JSValueObject` has no copy constructor or assignment operator. This is to avoid accidental expensive copies.
+Use the [`Copy`](#jsvalueobjectcopy) method to do the explicit copy.
+
+`JSValueObject` is based on
+[`std::map<std::string, JSValue, std::less<>>`](https://en.cppreference.com/w/cpp/container/map) class.
+The [`std::less<>`](https://en.cppreference.com/w/cpp/utility/functional/less) comparer specialization allows to use [`std::string_view`](https://en.cppreference.com/w/cpp/string/basic_string_view) to lookup properties without creation of [`std::string`](https://en.cppreference.com/w/cpp/string/basic_string) instances.
+We can use any `std::map` methods to work with the `JSValueObject`.
+In addition to the `std::map` methods, the `JSValueObject` has the following helper methods:
+
+- Special constructor to move-initialize from the `std::intializer_list<JSValueObjectKeyValue>`. It initializes `JSValueObject` from any value pairs where the first value can be passed to [`std::string_view`](https://en.cppreference.com/w/cpp/string/basic_string_view) constructor and the second value to the `JSValue` constructor. E.g. we can write `JSValueObject{{"X", 5}, {"Y", true}}`.
+- [`Equals`](#jsvalueobjectequals) method and standalone [equality ==](#equality-operator-) and [inequality !=](#inequality-operator-) operators to do strict deep comparison.
+- [`JSEquals`](#jsvalueobjectjsequals) method to do JavaScript-like deep comparison where property values are converted to the same type before comparison.
+- [`ReadFrom`](#jsvalueobjectreadfrom) method to construct `JSValueObject` from [`IJSValueReader`](IJSValueReader).
+- [`WriteTo`](#jsvalueobjectwriteto) method to serialize `JSValueObject` to [`IJSValueWriter`](IJSValueWriter).
+- [`operator []`](#jsvalueobjectoperator--1) to access property values using [`std::string_view`](https://en.cppreference.com/w/cpp/string/basic_string_view).
 
 ### Examples
 
-In this example we post a lambda to be executed in the `ReactDispatcher`.
+Construct `JSValueObject` from an initializer list:
 
 ```cpp
-dispatcher.Post([]() noexcept {
-  RunDispatchedCode();
-}]);
-
+auto obj = JSValueObject{{"p1", "X"}, {"p2", 42}, {"p3", nullptr}, {"p4", true}};
 ```
 
-In this example we use the `HasThreadAccess` to either run the code immediately or post it to the `ReactDispatcher`.
+Use `JSValueObject` and `JSValueArray` in the initializer list:
 
 ```cpp
-void InvokeElsePost(ReactDispatcher const& dispatcher, ReactDispatcherCallback const &callback) {
-  if (dispatcher.HasThreadAccess()) {
-    callback();
-  } else {
-    dispatcher.Post(callback);
-  }
-}
+auto obj = JSValueObject{
+  {"p1", "X"},
+  {"p2", 42},
+  {"p3", nullptr},
+  {"p4", true}, 
+  {"p5", JSValueObject{1, "2", 3}},
+  {"p6", JSValueObject{{"Foo", 5}, {"Bar", 10}}}
+};
 ```
 
-In this example we create a new serial dispatcher based on the thread pool and post some work to invoke there.
+The `JSValueObject` in inherited from `std::map` and we can use all `std::map` methods.  
+Add `JSValueObject` properties using [`try_emplace`](https://en.cppreference.com/w/cpp/container/map/try_emplace) method:
 
 ```cpp
-auto dispatcher = ReactDispatcher::CreateSerialDispatcher();
-dispatcher.Post([]() noexcept {
-  RunDispatchedCode1();
-}]);
-dispatcher.Post([]() noexcept {
-  RunDispatchedCode2();
-}]);
+auto obj = JSValueObject();
+obj.try_emplace("p1", "X");
+obj.try_emplace("p2", 42);
+obj.try_emplace("p3", nullptr);
+obj.try_emplace("p4", true);
+obj.try_emplace("p5", JSValueObject{1, "2", 3});
+obj.try_emplace("p6", JSValueObject{{"Foo", 5}, {"Bar", 10}});
+```
+
+Get object property count.
+
+```cpp
+JSValueObject obj = ...;
+auto propertyCount = obj.size();
+```
+
+Accessing object properties by name. We use `auto&` to avoid copy. Since `JSValue` has no copy constructor, the accidental use of `auto` will cause a compilation error.
+
+```cpp
+JSValueObject obj = ...;
+auto& propValue = obj["myProp"];
+```
+
+To get a copy of a property value, we use the [`JSValue::Copy`](cppapi-jsvalue#jsvaluecopy) method. Note, that [`JSValue::Copy`](cppapi-jsvalue#jsvaluecopy) method does a deep copy that can be expensive.
+
+```cpp
+JSValueObject obj = ...;
+auto propValueCopy = arr["myProp"].Copy(); // when we absolutely must to get a property value copy.
 ```
 
 ---
@@ -90,90 +120,54 @@ dispatcher.Post([]() noexcept {
 ## `(constructor)`
 
 ```cpp
-JSValueArray() = default;
+JSValueObject() = default;
 ```
 
-Constructs empty `JSValueArray`.
+Default constructor. Constructs an empty `JSValueObject`.
 
 ```cpp
-explicit JSValueArray(size_type size) noexcept;
+template <class TMoveInputIterator>
+JSValueObject(TMoveInputIterator first, TMoveInputIterator last) noexcept;
 ```
 
-Constructs `JSValueArray` with `size` count of `JSValue::Null` elements.
+Constructs `JSValueObject` from the move iterator.
 
 ```cpp
-JSValueArray(size_type size, JSValue const &defaultValue) noexcept;
+JSValueObject(std::initializer_list<JSValueObjectKeyValue> initObject) noexcept;
 ```
 
-Constructs `JSValueArray` with `size` count elements.
-Each element is a copy of `defaultValue`.
+Move-constructs `JSValueObject` from the initializer list.
+The `JSValueObjectKeyValue` is an internal helper struct that initializes its `std::string_view` and `JSValue` fields with a pair of values that can be passed to `std::string_view` and `JSValue` constructors. The `JSValueObjectKeyValue` must not be used directly. Instead, provide a value pair which can initialize the `JSValueObjectKeyValue`.
 
 ```cpp
-template <class TMoveInputIterator, std::enable_if_t<!std::is_integral_v<TMoveInputIterator>, int> = 1>
-JSValueArray(TMoveInputIterator first, TMoveInputIterator last) noexcept;
+JSValueObject(std::map<std::string, JSValue, std::less<>> &&other) noexcept;
 ```
 
-Construct `JSValueArray` from the move iterator.
+Move-constructs `JSValueObject` from the `std::string`-`JSValue` map.
 
 ```cpp
-JSValueArray(std::initializer_list<JSValueArrayItem> initObject) noexcept;
+JSValueObject(JSValueObject const &) = delete;
 ```
 
-Move-construct `JSValueArray` from the initializer list.
+Deletes copy constructor to avoid unexpected copies. Use the [`Copy`](#jsvalueobjectcopy) method instead.
 
 ```cpp
-JSValueArray(std::vector<JSValue> &&other) noexcept;
-```
-
-Move-construct `JSValueArray` from the `std::vector<JSValue>`.
-
-```cpp
-JSValueArray(JSValueArray const &) = delete;
-```
-
-Delete copy constructor to avoid unexpected copies. Use the Copy method instead.
-
-```cpp
-JSValueArray(JSValueArray &&) = default;
+JSValueObject(JSValueObject &&) = default;
 ```
 
 Default move constructor.
 
-### Parameters
-
-| | |
-|-|-|
-| **`handle`** | the `IReactDispatcher` handle |
-
 ---
 
-## `ReactDispatcher::CreateSerialDispatcher`
+## `JSValueObject::Copy`
 
 ```cpp
-static ReactDispatcher CreateSerialDispatcher() noexcept;
+JSValueObject Copy() const noexcept;
 ```
 
-Creates new serial `ReactDispatcher` that uses thread pool threads to invoke work items in a sequential order.
-
-### Parameters
-
-| | |
-|-|-|
-| **`callback`** | a `ReactDispatcherCallback` to be invoked asynchronously |
-
-### Return value
-
-(none)
-
----
-
-## `ReactDispatcher::Handle`
-
-```cpp
-static ReactDispatcher CreateSerialDispatcher() noexcept;
-```
-
-Returns the `IReactDispatcher` instance wrapped up by the `ReactDispatcher`.
+Does a deep copy of the `JSValueObject`.
+Doing a deep copy could be an expensive operation.
+For that reason the `JSValueObject` has no copy constructor to avoid accidental copies.
 
 ### Parameters
 
@@ -181,44 +175,89 @@ Returns the `IReactDispatcher` instance wrapped up by the `ReactDispatcher`.
 
 ### Return value
 
-The `IReactDispatcher` wrapped by the `ReactDispatcher`. It may be empty.
+New `JSValueObject` with a deep copy of all items in the current `JSValueObject`.
 
 ---
 
-## `ReactDispatcher::HasThreadAccess`
+## `JSValueObject::Equals`
 
 ```cpp
-bool HasThreadAccess() const noexcept;
+bool Equals(JSValueObject const &other) const noexcept;
 ```
 
-Checks if the `ReactDispatcher` has access to the current thread.
+Checks strict equality with the `other` `JSValueObject`.
 
 ### Parameters
 
-(none)
+| Name | Description |
+|------|-------------|
+| **`other`** | a reference to another `JSValueObject` to compare with |
 
 ### Return value
 
-**true** if the current thread is either associated with the `ReactDispatcher`,
-or the `ReactDispatcher` currently invokes one of its work items in the current thread.
-Otherwise, it returns **false**.
+Returns **`true`** if this `JSValueObject` is strictly equal to the `other` `JSValueObject`.
+Both objects must have the same set of properties where the corresponding values are matched by [`JSValue::Equals`](cppapi-jsvalue#jsvalueequals) method.
+Otherwise, it returns **`false`**.
 
 ---
 
-## `ReactDispatcher::Post`
+## `JSValueObject::JSEquals`
 
 ```cpp
-void Post(ReactDispatcherCallback const &callback) const noexcept;
+bool JSEquals(JSValueObject const &other) const noexcept;
 ```
 
-Posts an `ReactDispatcherCallback` for an asynchronous invocation.
-It adds the `callback` to a queue. It will be invoked after all previous callbacks in the queue are invoked.
+Checks JavaScript-like equality with the `other` `JSValueObject`.
+Both objects must have the same set of properties where the corresponding values are matched by [`JSValue::JSEquals`](cppapi-jsvalue#jsvaluejsequals) method. The [`JSValue::JSEquals`](cppapi-jsvalue#jsvaluejsequals) compares values after they are converted to the same type.
 
 ### Parameters
 
-| | |
-|-|-|
-| **`callback`** | a `ReactDispatcherCallback` to be invoked asynchronously |
+| Name | Description |
+|------|-------------|
+| **`other`** | a reference to another `JSValueObject` |
+
+### Return value
+
+Returns **`true`** if this `JSValueObject` has the same set of properties as the `other` `JSValueObject`,
+and [`JSValue::JSEquals`](cppapi-jsvalue#jsvaluejsequals) returns **`true`** for each property value with the same name.
+Otherwise, it returns **`false`**.
+
+---
+
+## `JSValueObject::ReadFrom`
+
+```cpp
+static JSValueObject ReadFrom(IJSValueReader const &reader) noexcept;
+```
+
+Creates new `JSValueObject` from the `IJSValueReader`.
+
+### Parameters
+
+| Name | Description |
+|------|-------------|
+| **`reader`** | a `IJSValueReader` to read values from |
+
+### Return value
+
+Returns new `JSValueObject` initialized from the `IJSValueReader`.
+If the provided `IJSValueReader` is not in the object reading state, then it returns an empty `JSValueObject` and state of `IJSValueReader` is not changed.
+
+---
+
+## `JSValueObject::WriteTo`
+
+```cpp
+void WriteTo(IJSValueWriter const &writer) const noexcept;
+```
+
+Writes this `JSValueObject` to the `IJSValueWriter`.
+
+### Parameters
+
+| Name | Description |
+|------|-------------|
+| **`writer`** | a `IJSValueWriter` to write values to |
 
 ### Return value
 
@@ -226,19 +265,74 @@ It adds the `callback` to a queue. It will be invoked after all previous callbac
 
 ---
 
-## `ReactDispatcher::operator bool`
+## `JSValueObject::operator =`
 
 ```cpp
-explicit operator bool() const noexcept;
+JSValueObject &operator=(JSValueObject &&) = default;
 ```
 
-Checks if the wrapped `IReactDispatcher` is not empty.
+Default move assignment.
+
+```cpp
+JSValueObject &operator=(JSValueObject const &) = delete;
+```
+
+Delete copy assignment to avoid unexpected copies. Use the [`Copy`](#jsvalueobjectcopy) method instead.
+
+---
+
+## `JSValueObject::operator []`
+
+```cpp
+JSValue &operator[](std::string_view propertyName) noexcept;
+```
+
+Gets a reference to object property value if the property is found,
+or a reference to a new property created with JSValue::Null value otherwise.
+
+```cpp
+JSValue const &operator[](std::string_view propertyName) const noexcept;
+```
+
+Gets a reference to object property value if the property is found,
+or a reference to [`JSValue::Null`](cppapi-jsvalue#jsvaluenull) otherwise.
+
+---
+
+## Equality `operator ==`
+
+```cpp
+bool operator==(JSValueObject const &left, JSValueObject const &right) noexcept;
+```
 
 ### Parameters
 
-(none)
+| Name | Description |
+|------|-------------|
+| **`left`** | `JSValueObject` to compare |
+| **`right`** | `JSValueObject` to compare |
 
 ### Return value
 
-**true** if the wrapped `IReactDispatcher` is not empty.
-Otherwise it returns **false**.
+It returns result of the `left.Equals(right)` operation.
+It returns **`true`** if both objects have the same size and `JSValue::Equals` returns **`true`** for each pair of items.
+Otherwise, it returns **`false`**.
+
+---
+
+## Inequality `operator !=`
+
+```cpp
+bool operator!=(JSValueObject const &left, JSValueObject const &right) noexcept;
+```
+
+### Parameters
+
+| Name | Description |
+|------|-------------|
+| **`left`** | `JSValueObject` to compare |
+| **`right`** | `JSValueObject` to compare |
+
+### Return value
+
+It returns result of the `!(left == right)` operation.

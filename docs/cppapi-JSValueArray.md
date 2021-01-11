@@ -25,7 +25,7 @@ The `JSValueArray` has two roles:
 | **[`(constructor)`](#constructor)** | constructs the `JSValueArray` |
 | **[`Copy`](#jsvaluearraycopy)** | does a deep copy of the `JSValueArray` |
 | **[`Equals`](#jsvaluearrayequals)** | strictly compares `JSValueArray` with another one |
-| **[`JSEquals`](#jsvaluearrayjsequals)** | compares `JSValueArray` with another one after value type conversion |
+| **[`JSEquals`](#jsvaluearrayjsequals)** | compares `JSValueArray` with another one after value conversion |
 | **[`ReadFrom`](#jsvaluearrayreadfrom)** | creates new `JSValueArray` from `IJSValueReader` |
 | **[`WriteTo`](#jsvaluearraywriteto)** | writes the `JSValueArray` to `IJSValueWriter` |
 | **[`operator =`](#jsvaluearrayoperator-)** | `JSValueArray` assignment operator |
@@ -51,8 +51,8 @@ Use the [`Copy`](#jsvaluearraycopy) method to do the explicit copy.
 We can use any `std::vector` methods to work with the `JSValueArray`.
 In addition to the `std::vector` methods, the `JSValueArray` has the following helper methods:
 
-- Special constructor to move-initialize from the `std::intializer_list<JSValue>`. It initializes `JSValueArray` from any values that can be passed to `JSValue` implicit constructors. E.g. we can write `JSValueArray{"X", 42, nullptr, true}`
-- [`Equals`](#jsvaluearrayequals) method and standalone [equality](#equality-operator-) and [inequality](#inequality-operator-) operators to do strict deep comparison.
+- Special constructor to move-initialize from the `std::intializer_list<JSValueArrayItem>`. It initializes `JSValueArray` from any values that can be passed to `JSValue` constructor. E.g. we can write `JSValueArray{"X", 42, nullptr, true}`.
+- [`Equals`](#jsvaluearrayequals) method and standalone [equality ==](#equality-operator-) and [inequality !=](#inequality-operator-) operators to do strict deep comparison.
 - [`JSEquals`](#jsvaluearrayjsequals) method to do JavaScript-like deep comparison where values are converted to the same type before comparison.
 - [`ReadFrom`](#jsvaluearrayreadfrom) method to construct `JSValueArray` from [`IJSValueReader`](IJSValueReader).
 - [`WriteTo`](#jsvaluearraywriteto) method to serialize `JSValueArray` to [`IJSValueWriter`](IJSValueWriter).
@@ -95,7 +95,7 @@ Get size of the array.
 
 ```cpp
 JSValueArray arr = ...;
-auto arrSize = arr.size();
+auto itemCount = arr.size();
 ```
 
 Accessing array items by index. We use `auto&` to avoid copy. Since `JSValue` has no copy constructor, the accidental use of `auto` will cause a compilation error.
@@ -105,11 +105,11 @@ JSValueArray arr = ...;
 auto& item = arr[2];
 ```
 
-To get a copy of an item, we use the [`Copy`](#jsvaluearraycopy) method. Note, that [`Copy`](#jsvaluearraycopy) method does a deep copy that can be expensive.
+To get a copy of an item, we use the [`JSValue::Copy`](cppapi-jsvalue#jsvaluecopy) method. Note, that [`JSValue::Copy`](cppapi-jsvalue#jsvaluecopy) method does a deep copy that can be expensive.
 
 ```cpp
 JSValueArray arr = ...;
-auto item = arr[2].Copy(); // when you absolutely must to get an item copy.
+auto item = arr[2].Copy(); // when we absolutely must to get an item copy.
 ```
 
 ---
@@ -147,10 +147,10 @@ JSValueArray(std::initializer_list<JSValueArrayItem> initObject) noexcept;
 ```
 
 Move-constructs `JSValueArray` from the initializer list.
-The `JSValueArrayItem` is an internal helper class that implicitly initializes its `JSValue` field with any value that can be passed to `JSValue` implicit constructor. The `JSValueArrayItem` must not be used directly. Instead, provide a value which let's the `JSValue` to be constructed from.
+The `JSValueArrayItem` is an internal helper struct that initializes its `JSValue` field with any value that can be passed to `JSValue` constructor. The `JSValueArrayItem` must not be used directly. Instead, provide a value which can initialize the `JSValueArrayItem`.
 
 ```cpp
-  JSValueArray(std::vector<JSValue> &&other) noexcept;
+JSValueArray(std::vector<JSValue> &&other) noexcept;
 ```
 
 Move-constructs `JSValueArray` from the `JSValue` vector.
@@ -159,7 +159,7 @@ Move-constructs `JSValueArray` from the `JSValue` vector.
 JSValueArray(JSValueArray const &) = delete;
 ```
 
-Deletes copy constructor to avoid unexpected copies. Use the `Copy` method instead.
+Deletes copy constructor to avoid unexpected copies. Use the [`Copy`](jsvaluearraycopy) method instead.
 
 ```cpp
 JSValueArray(JSValueArray &&) = default;
@@ -218,7 +218,7 @@ bool JSEquals(JSValueArray const &other) const noexcept;
 ```
 
 Checks JavaScript-like equality with the `other` `JSValueArray`.
-It compares the size of `JSValueArray` and if it is the same, then it compares items using [`JSValue::JSEquals`](cppapi-jsvalue#jsvaluejsequals) method. The [`JSValue::JSEquals`](cppapi-jsvalue#jsvaluejsequals) compares items after their values is converted to the same type.
+It compares the size of `JSValueArray` and if it is the same, then it compares items using [`JSValue::JSEquals`](cppapi-jsvalue#jsvaluejsequals) method. The [`JSValue::JSEquals`](cppapi-jsvalue#jsvaluejsequals) compares values after they are converted to the same type.
 
 ### Parameters
 
