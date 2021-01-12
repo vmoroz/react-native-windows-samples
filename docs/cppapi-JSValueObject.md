@@ -175,7 +175,7 @@ For that reason the `JSValueObject` has no copy constructor to avoid accidental 
 
 ### Return value
 
-New `JSValueObject` with a deep copy of all items in the current `JSValueObject`.
+New `JSValueObject` with a deep copy of all items from this `JSValueObject`.
 
 ---
 

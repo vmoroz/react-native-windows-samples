@@ -185,7 +185,7 @@ For that reason the `JSValueArray` has no copy constructor to avoid accidental c
 
 ### Return value
 
-New `JSValueArray` with a deep copy of all items in the current `JSValueArray`.
+New `JSValueArray` with a deep copy of all items from this `JSValueArray`.
 
 ---
 
